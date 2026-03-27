@@ -1,28 +1,33 @@
 name: SSH Login
 
+# 强制 Node 24，彻底消除弃用警告
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   schedule:
-    - cron: '0 11 5 * *'  # 每月的 5号 北京时间 19 点运行
+    # 每月5号 北京时间19:00（UTC+8 → UTC 11:00）
+    - cron: '0 11 5 * *'
   workflow_dispatch:
 
 jobs:
   ssh-login:
     runs-on: ubuntu-latest
-
     steps:
+      # 升级到最新版（Node 24 兼容）
       - name: Checkout repository
-        uses: actions/checkout@v2
-      
+        uses: actions/checkout@v6  # 从 v2 → v6
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v6  # 从 v2 → v6
         with:
-          python-version: '3.x'
+          python-version: '3.12'  # 固定版本更稳定
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install paramiko requests
-      
+
       - name: Run Python script
         env:
           SSH_INFO: ${{ secrets.SSH_INFO }}
@@ -31,5 +36,4 @@ jobs:
           PUSH: ${{ secrets.PUSH }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          
         run: python run.py
